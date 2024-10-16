@@ -1,0 +1,18 @@
+{% autoescape off %}
+Dear Admin,
+
+A new Return Merchandise Authorization (RMA) request has been submitted. Here are the details:
+
+RMA Number: {{rma_number}}
+Customer Name: {{customer_name}}
+Email: {{customer_email}}
+Phone: {{customer_phone}}
+Product SKU: {{product_sku}}
+Reason for Return: {{reason_for_return}}
+Submitted On: {{submitted_date}}
+
+Please log in to the admin panel to review and process this request.
+
+Thank you,
+{{site_name}}
+{% endautoescape %}

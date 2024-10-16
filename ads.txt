@@ -1,0 +1,5 @@
+# ads.txt
+# List of authorized digital advertising sellers
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+appnexus.com, 123456, DIRECT, abcdef123456
+rubiconproject.com, 78910, RESELLER, 123abc456def

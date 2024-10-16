@@ -1,0 +1,24 @@
+<div class="container h-100 pt-5">
+    <div class="row h-100">
+        <div class="col-lg-7 my-auto pb-5">
+            <div class="mx-auto">
+                <h1 class="text-success mb-3">RMA Request Submitted Successfully!</h1>
+                <h2 class="fs-4 mb-3">RMA Number is:  <b class="text-danger">{{ rma_number }}</b>.</h2>
+                <h3 class="fs-5 text-secondary mb-3">You will get an email shortly with instruction to return the item after reviewing your request.</h3>
+                <a class="btn btn-success btn-xl" role="button" href="#more-info">Know More!</a>
+            </div>
+        </div>
+        <div class="col-lg-5 my-auto">              
+            <div class="">
+                <div class="w-100 position-relative">
+                    <div class="">
+                        <div class="">
+                            {% include "rma/rma_form.html" with form=form %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+   
+        </div>
+    </div>
+</div>

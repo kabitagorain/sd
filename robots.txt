@@ -1,0 +1,8 @@
+# robots.txt
+User-agent: *
+Disallow: /admin/
+Disallow: /private/
+Disallow: /temp/
+Allow: /
+
+# Sitemap: https://www.yoursite.com/sitemap.xml

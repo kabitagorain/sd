@@ -1,0 +1,24 @@
+{% autoescape off %}
+Dear {{ customer_name }},
+
+We have reviewed your Return Merchandise Authorization (RMA) request and would like to provide you with the instructions for returning your product.
+
+RMA Number: {{ rma_number }}
+Product SKU: {{ product_sku }}
+Reason for Return: {{ reason_for_return }}
+Submitted On: {{ submitted_date }}
+
+Please follow these instructions to complete your return:
+
+{{ admin_instruction }}
+
+Return Address:
+    {{ return_address }}
+
+If you have any questions or need additional assistance, please feel free to contact us at {{ site_name }}.
+
+Thank you for your cooperation.
+
+Best regards,  
+{{ site_name }} Support Team
+{% endautoescape %}

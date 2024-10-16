@@ -1,0 +1,17 @@
+{% autoescape off %}
+Dear {{customer_name}},
+
+Thank you for submitting your Return Merchandise Authorization (RMA) request. We have received your request, and your RMA number is: {{rma_number}}.
+
+Here are the details of your request:
+Product SKU: {{product_sku}}
+Reason for Return: {{reason_for_return}}
+Submitted On: {{submitted_date}}
+
+Our team will review your request and get back to you with further instructions shortly. If you have any questions, please don't hesitate to contact us.
+
+Thank you for choosing {{site_name}}.
+
+Best regards,
+{{site_name}} Support Team
+{% endautoescape %}

@@ -1,0 +1,67 @@
+from django import forms
+from .models import RmaRequests
+from django_recaptcha.fields import ReCaptchaField
+from django_recaptcha import widgets 
+# create site SEO, Sitemap
+
+class RmaForm(forms.ModelForm):
+    # captcha = ReCaptchaField(
+    #     widget=widgets.ReCaptchaV2Checkbox(        
+    #         api_params={'hl': 'cl', 'onload': 'onLoadFunc'}
+    #     ),
+    #     label=''
+    # )
+    
+    class Meta:
+        model =RmaRequests
+        fields = [
+            'customer_name', 
+            'email', 
+            'phone', 
+            'order_ref', 
+            'product_sku', 
+            'reason_for_return'
+        ]
+        
+        widgets = {
+            'customer_name': forms.TextInput(attrs={'placeholder': 'Customer name included with the order', 'class':'form-control', 'aria-label':'name', 'autocomplete':"name"}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Email address included with the order', 'class':'form-control', 'aria-label':'email', 'autocomplete':"email"}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Phone number included with the order', 'class':'form-control', 'aria-label':'phone', 'autocomplete':"phone"}), 
+            'order_ref': forms.TextInput(attrs={'placeholder': 'Order reference number', 'class':'form-control', 'aria-label':'order-ref', 'autocomplete':"order-ref"}),
+            'product_sku': forms.TextInput(attrs={'placeholder': 'Product SKU', 'class':'form-control', 'aria-label':'sku', 'autocomplete':"sku"}),
+            'reason_for_return': forms.Textarea(attrs={'placeholder': 'Reason for return', 'class':'form-control', 'aria-label':'reason_for_return', 'autocomplete':"reason-for-return"}),
+            
+                        
+        }        
+        
+        labels = {  
+            'customer_name': 'Customer Name',
+            'email': 'Order Email',
+            'phone': 'Order Phone Number',
+            'order_ref': 'Odrer Reference',
+            'product_sku': 'Product SKU',
+            'reason_for_return': 'Reason for return',
+    
+            
+        }
+        
+    def __init__(self, *args, **kwargs):        
+        super(RmaForm, self).__init__(*args, **kwargs)
+        self.label_suffix = ''
+        
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        order_ref = cleaned_data.get('order_ref')
+        product_sku = cleaned_data.get('product_sku')
+
+        # Check if an RmaRequest already exists with the same email, order_ref, and product_sku
+        if RmaRequests.objects.filter(email=email, order_ref=order_ref, product_sku=product_sku).exists():
+            raise forms.ValidationError(
+                "An RMA request already exists for this product SKU with the same email and order reference."
+            )
+
+        return cleaned_data
+      
+        

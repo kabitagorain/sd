@@ -1,0 +1,47 @@
+{% extends "layout/base.html" %} 
+{% load static %}
+
+{% block content %}
+
+<section id="rma_request" style="background: url({% static 'assets/img/bg-pattern.png' %}), linear-gradient(to left, #f8f9fa, #ffffff);">
+    {% include "rma/rma_form_block.html" with form=form %}
+</section>
+
+<section id="more-info" class="cta" style="background-image: url({% static 'assets/img/ed_banner.jpg' %});">
+    <div class="cta-content">
+        <div class="container">
+            <h3 class="fs-4 text-light">Whether you're facing issues with your equipment or need a repair, our Return Merchandise Authorization (RMA) system is designed to make returns easy. Just fill out the form, and we'll provide you with an RMA number and clear instructions to ensure a smooth process.</h3>
+            <a class="btn btn-warning btn-xl" role="button" href="#rma_request">Generate RMA!</a>
+            <a class="btn btn-success btn-xl" role="button" target="_blank" href="https://edsystemsinc.com/">Visit Our Store!</a>
+
+        </div>
+    </div>
+    <div class="overlay"></div>
+</section>
+
+<section class="bg-primary contact" id="contact">
+    <div class="container">
+        <h2><span>We&nbsp;</span><i class="fa fa-heart"></i><span>&nbsp;new friends!</span></h2>
+        <ul class="list-inline list-social">
+            <li class="list-inline-item social-facebook">
+                <a target="_blank" href="{{ site_data.facebook }}"><i class="fa fa-facebook"></i></a>
+            </li>
+            <li class="list-inline-item social-twitter">
+                <a target="_blank" href="{{ site_data.x_twitter }}"><i class="fa fa-twitter"></i></a>
+            </li>
+            <li class="list-inline-item social-linkedin">
+                <a target="_blank" href="{{ site_data.linkedin }}"><i class="fa fa-linkedin"></i></a>
+            </li>
+            <li class="list-inline-item social-instagram">
+                <a target="_blank" href="{{ site_data.instagram }}"><i class="fa fa-instagram"></i></a>
+            </li>
+
+        </ul>
+    </div>
+</section>
+
+
+
+
+{% endblock %}
+        
