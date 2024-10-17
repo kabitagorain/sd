@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 
+    <!-- Titles -->
     <title>{{ site_data.name }} - {{ site_data.title }}</title>
 
     <!-- Meta Tags -->
@@ -15,7 +16,7 @@
     <!-- Favicon -->
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 
-    <!-- Include External CSS -->
+    <!-- Include CSS -->
     <link rel="stylesheet" href="{% static 'assets/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'assets/fonts/font-awesome.min.css' %}">   
     
@@ -49,7 +50,7 @@
         {% include 'layout/footer.html' %}
         {% endblock %}
         {% include 'includes/scripts.html' %}
-        
+        <!-- Additional JS -->
         {% block javascripts %}{% endblock %}
     </footer>
 </body>
