@@ -24,7 +24,7 @@ The **ED** project is a Django-based WSGI web application that provides RMA ecos
 ## Requirements
 ```txt
 - Python 3.10
-- Django 4.2                                            # if you are planning to go with django > 5 , please check suported MariaDB Version
+- Django 4.2                                            # if you are planning to go with django > 5 , please check supported MariaDB Version
 - Other dependencies as listed in `requirements.txt`.
 - Bootstrap 5.3
 - Jquery 3.7.0
@@ -35,7 +35,7 @@ The **ED** project is a Django-based WSGI web application that provides RMA ecos
 ```base
     ED/
     ├── account/           # Account management app
-    ├── cached/            # Caching files for current file based caching
+    ├── cached/            # Caching files for current filebased cache
     ├── ed/                # Main project directory
     ├── logs/              # Log files directory
     ├── media/             # User-uploaded media files
@@ -47,7 +47,7 @@ The **ED** project is a Django-based WSGI web application that provides RMA ecos
     ├── ads.txt            # Ads.txt file for web crawlers
     ├── robots.txt         # Robots.txt file for web crawlers
     ├── README.md          # Project README file
-    ├── .env               # Project README file
+    ├── .env               # Environment COnfiguration
     └── requirements.txt   # Project requirements files
 ```
 
