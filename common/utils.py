@@ -21,10 +21,11 @@ class SdMailService:
         """
         Initializes the SdMailService instance.
 
-        Retrieves site metadata and initializes the list of admin email addresses.
+        Retrieves site metadata, initializes the list of admin email addresses and from email.
         """
         self.site = site_info()
         self.admin_list = settings.ADMIN
+        self.from_email = settings.DEFAULT_FROM_EMAIL
 
     def get_rma_from_cache(self, rma_id):
         """
@@ -144,7 +145,7 @@ class SdMailService:
                         (
                             f"[{self.site.get('name')}] New RMA Submitted for Product SKU #{self.get_rma_product_sku(rma_id)}",
                             admin_msg,
-                            settings.DEFAULT_FROM_EMAIL,
+                            self.from_email,
                             email_list,
                         )
                     )
@@ -153,7 +154,7 @@ class SdMailService:
                         (
                             f"[{self.site.get('name')}] We Have Received Your RMA for Product SKU #{self.get_rma_product_sku(rma_id)}",
                             customer_msg,
-                            settings.DEFAULT_FROM_EMAIL,
+                            self.from_email,
                             email_list,
                         )
                     )
@@ -183,7 +184,7 @@ class SdMailService:
             send_mail(
                 f"[{self.site.get('name')}] Instruction to Return Product with SKU #{self.get_rma_product_sku(rma_id)} for RMA {self.get_rma_rma_number(rma_id)}",
                 rma_instruction_msg,
-                settings.DEFAULT_FROM_EMAIL,
+                self.from_email,
                 [self.get_rma_email(rma_id)],
             )
         except Exception as e:
