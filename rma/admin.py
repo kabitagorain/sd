@@ -57,7 +57,7 @@ class RmaRequestsAdmin(admin.ModelAdmin):
             # Cache the RMA request to reduce database hits.
             cache.set(f"rma_{rma_id}", obj, timeout=900)
             if obj.status == "rma_sent":
-                mail_service.sent_rma_instruction_to_customer(rma_id)
+                mail_service.send_rma_instruction_to_customer(rma_id)
 
         super().save_model(request, obj, form, change)
 

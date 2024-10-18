@@ -164,7 +164,7 @@ class SdMailService:
             log.error(f"Error during sending send_rma_genaration_email: {e}")
         cache.delete(f"rma_{rma_id}")
 
-    def sent_rma_instruction_to_customer(self, rma_id):
+    def send_rma_instruction_to_customer(self, rma_id):
         """
         Sends RMA instructions to the customer when the RMA status is updated.
 
