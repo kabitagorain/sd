@@ -150,7 +150,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# File-based caching configuration
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
