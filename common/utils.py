@@ -1,11 +1,10 @@
-from django.core.mail import send_mail, send_mass_mail
+from .tasks import send_ed_email, send_ed_mass_email
 from django.core.cache import cache
 from common.context_processor import site_info
 from ed import settings
 from django.template.loader import render_to_string
 
 import logging
-
 log = logging.getLogger("log")
 
 
@@ -117,7 +116,7 @@ class SdMailService:
         """
         Sends RMA generation emails to the admin and the customer.
 
-        Uses `send_mass_mail` to send multiple emails in one connection.
+        Uses `send_ed_mass_email` to send multiple emails in one connection through celery.
         Emails are sent to the addresses configured in the admin list, as well
         as the customer who created the RMA request. Once done, the cache is cleared.
 
@@ -159,7 +158,7 @@ class SdMailService:
                         )
                     )
 
-            send_mass_mail(tuple(email_bundle))
+            send_ed_mass_email.delay(tuple(email_bundle))
         except Exception as e:
             log.error(f"Error during sending send_rma_genaration_email: {e}")
         cache.delete(f"rma_{rma_id}")
@@ -168,7 +167,7 @@ class SdMailService:
         """
         Sends RMA instructions to the customer when the RMA status is updated.
 
-        Uses `send_mail` to send a single email to the customer with instructions.
+        Uses `send_ed_email` to send a single email to the customer with instructions through celery.
         The cache is cleared after the operation.
 
         Args:
@@ -181,7 +180,7 @@ class SdMailService:
             "emails/rma_instruction_msg.txt", context
         )
         try:
-            send_mail(
+            send_ed_email.delay(
                 f"[{self.site.get('name')}] Instruction to Return Product with SKU #{self.get_rma_product_sku(rma_id)} for RMA {self.get_rma_rma_number(rma_id)}",
                 rma_instruction_msg,
                 self.from_email,

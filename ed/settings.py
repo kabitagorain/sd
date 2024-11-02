@@ -17,10 +17,16 @@ if not SECRET_KEY:
     raise ValueError("No ED_SECRET_KEY set for production")
 
 # Enable debug mode based on environment variable. if it does not response in production please write hardcode True/False here
-DEBUG = env("DEBUG")
+# DEBUG = env("DEBUG")
+DEBUG = env.bool("DEBUG", default=False)
 
-# Configure allowed hosts for the application
-ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
+if DEBUG:
+    # Configure allowed hosts for the application
+    ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
+else:
+    # Configure allowed hosts for the application
+    ALLOWED_HOSTS = env("ALLOWED_HOSTS_PRO").split(",")
+    
 
 # Set the default site ID for the Django sites framework
 SITE_ID = 1
@@ -33,9 +39,13 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    'django.contrib.humanize',
     "django.contrib.sitemaps",
+    'django_celery_results',
+    'django_celery_beat',
     
     # Custom apps
     "account",
@@ -55,6 +65,7 @@ AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
 # Define middleware components for request processing
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.sites.middleware.CurrentSiteMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -90,20 +101,37 @@ TEMPLATES = [
 # WSGI application path
 WSGI_APPLICATION = "ed.wsgi.application"
 
-# MySQL database configuration
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": env("ED_DB_NAME"),
-        "USER": env("ED_DB_USER"),
-        "PASSWORD": env("ED_DB_PASSWORD"),
-        "HOST": env("ED_DB_HOST"),
-        "PORT": env("ED_DB_PORT"),
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+if DEBUG:
+
+    # MySQL database dev
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": env("ED_DB_NAME"),
+            "USER": env("ED_DB_USER"),
+            "PASSWORD": env("ED_DB_PASSWORD"),
+            "HOST": env("ED_DB_HOST"),
+            "PORT": env("ED_DB_PORT"),
+            "OPTIONS": {
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": env("ED_DB_NAME_PRO"),
+            "USER": env("ED_DB_USER_PRO"),
+            "PASSWORD": env("ED_DB_PASSWORD_PRO"),
+            "HOST": env("ED_DB_HOST_PRO"),
+            "PORT": env("ED_DB_PORT_PRO"),
+            "OPTIONS": {
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
+    }
+    
 
 
 # Password validation settings
@@ -125,12 +153,26 @@ AUTH_PASSWORD_VALIDATORS = [
 # File-based caching configuration
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": os.path.join(BASE_DIR, "cache"),
-        "TIMEOUT": 3600,
-        "OPTIONS": {"MAX_ENTRIES": 1000},
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": env("CACHES_LOCATION"),   
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
+
+
+CELERY_TIMEZONE = "UTC"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_RESULT_BACKEND = 'ed-django-db'
+CELERY_CACHE_BACKEND = 'ed-default'
+CELERY_RESULT_EXTENDED = True
+
+CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
 
 
 # Localization settings
@@ -185,7 +227,8 @@ EMAIL_USE_SSL = True
 ADMIN = env("ADMIN").split(",")
 
 # Security settings
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 X_FRAME_OPTIONS = "SAMEORIGIN"
 CSRF_COOKIE_SECURE = True
@@ -302,3 +345,5 @@ LOGGING = {
     "handlers": HANDLERS,
     "loggers": LOGGERS[0],
 }
+
+

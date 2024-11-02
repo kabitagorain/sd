@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals
+from .celery import app as celery_app
 """
 Ensures that the RMA status includes "rma_sent" in the settings configuration.
 
@@ -14,3 +16,9 @@ Raises:
 from django.conf import settings
 if ("rma_sent", "RMA Sent") not in settings.RMA_STATUS:
     raise ValueError('("rma_sent", "RMA Sent") must have in the settings.RMA_STATUS ')
+
+
+"""
+This is celery initialization
+"""
+__all__ = ('celery_app',)

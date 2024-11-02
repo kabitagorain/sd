@@ -24,6 +24,8 @@ The **ED** project is a Django-based WSGI web application that provides RMA ecos
 ## Requirements
 ```txt
 - Python 3.10
+- Redis Server                                          # For production will serving from `Cloudpanel`'s default redis service instance
+- Celery Worker                                         # For production will run from custom celery service in `CloudPanel`.
 - Django 4.2                                            # if you are planning to go with django > 5 , please check supported MariaDB Version
 - Other dependencies as listed in `requirements.txt`.
 - Bootstrap 5.3
@@ -35,7 +37,7 @@ The **ED** project is a Django-based WSGI web application that provides RMA ecos
 ```base
     ED/
     ├── account/           # Account management app
-    ├── cached/            # Caching files for current filebased cache
+    ├── cached/            # (Abandoned after rdis)Caching files for current filebased cache
     ├── ed/                # Main project directory
     ├── logs/              # Log files directory
     ├── media/             # User-uploaded media files
@@ -120,6 +122,10 @@ The **ED** project is a Django-based WSGI web application that provides RMA ecos
 
     visit `http://127.0.0.1:8000/`
 
+## Setup Redis and celery worker
+
+Install and configure redis and celery with beat and report as per `requirements.txt` file, migrate and check. Please look into `ed/__init__`, `ed/celery`, `comon/tasks` and `ed/settings` for more info. `celery service` need to start in the server.
+
 
 
 ## **Main Project:**
@@ -141,7 +147,9 @@ Raises:
     ValueError: If the tuple ("rma_sent", "RMA Sent") is not found in `settings.RMA_STATUS`.
 ```
 
-Adjust `CACHE` in `settings.py` file of this main project directory as per you cache requirements. Currntly here utilized filebase caching. `CACHE` being served from the `cache` directory of the root directory.
+~~Adjust `CACHE` in `settings.py` file of this main project directory as per you cache requirements. Currntly here utilized filebase caching. `CACHE` being served from the `cache` directory of the root directory.~~
+
+Redis and celery implemented for `cache` and `message queue`
 
 ### **Admin Interface Configuration**
 
@@ -216,6 +224,7 @@ The `common` app provides shared utilities and configurations, including:
     ```
     if you want to enhance, then first update the `models.py` of this app then add/remove the fields here inside `data` dict. Enter Data from the admin inteface, Then delete the `cache` like `cache.delete('site_data')`. The enhancement are avialable on the template.
 - `models.py`: Defines the `SiteMeta` model, which extends `Site` with fields such as title, description, social media links, and logos. For enhancement just add new fields and run `makemigrations` then `migrate` then add the new field acording to described in the `context_processor.py` above.
+- `tasks.py` celery tasks. `send_ed_mass_email` and `send_ed_email` playing main role to send mail through celery broker.
 - `urls.py`: Provides a placeholder URL pattern for future extensions.
 - `utils.py`: Contains the `SdMailService` class for sending emails related to RMA requests, including RMA generation notifications and return instructions. There is two method which is being used like below:
     ``` python
@@ -331,8 +340,9 @@ ED System Inc Support Team
 - `media` dir ready to serve all file will be uploaded by customer
 - `templates` dir serving all HTML and txt templates files for `email` and `frontend`.
 
-## Caching and Logging
-- Currently system serving filebasecache from `cache` dir of the root. Recomended to use redis cache if suporting resources avialable.
+## Caching, Message Queue and Logging
+- ~~Currently system serving filebasecache from `cache` dir of the root. Recomended to use redis cache if suporting resources avialable.~~
+- Local Redis are implemented for `cache` and `email queue` which can be served from local redis of `CloudPanel`. 
 - System logging can be found in the `logs` dir of the root.
 
 ## Additional Resources
@@ -347,7 +357,7 @@ Below are some potential enhancements that could be considered, depending on you
 - Implement email notifications for when a returned product is received from the customer, or if the RMA request is rejected.
 - Add user authentication functionalities such as login, signup, password reset, password confirmation, user profile management, and payment handling.
 - Create a sitemap for SEO purposes and enhance the application by making it a Progressive Web App (PWA) with a manifest file.
-- Use Redis and Celery to improve scalability for large user bases, managing cache and handling email queues efficiently.
+- ~~Use Redis and Celery to improve scalability for large user bases, managing cache and handling email queues efficiently.~~
 - Integrate with the eCommerce system’s API to validate whether an order, product, or email exists.
 - Allow users to track their submitted RMA requests directly from their account dashboard.
 - Enhance the system by adding a feature for customers to upload documents related to their RMA requests.
