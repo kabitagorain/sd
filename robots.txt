@@ -5,4 +5,4 @@ Disallow: /private/
 Disallow: /temp/
 Allow: /
 
-# Sitemap: https://www.yoursite.com/sitemap.xml
+# Sitemap: https://return.edsystemsinc.com/sitemap.xml
