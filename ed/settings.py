@@ -23,9 +23,11 @@ DEBUG = env.bool("DEBUG", default=False)
 if DEBUG:
     # Configure allowed hosts for the application
     ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
+    CSRF_TRUSTED_ORIGINS = env("ALLOWED_HOSTS").split(",")
 else:
     # Configure allowed hosts for the application
     ALLOWED_HOSTS = env("ALLOWED_HOSTS_PRO").split(",")
+    CSRF_TRUSTED_ORIGINS = env("ALLOWED_HOSTS_PRO").split(",")
     
 
 # Set the default site ID for the Django sites framework
