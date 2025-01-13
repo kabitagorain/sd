@@ -31,7 +31,7 @@ def send_ed_mass_email(bundle: tuple):
         return msg
     except Exception as e:
         log.error(
-            "Error while sending mass mail (send_ed_mass_email) through celery queue"
+            f"Error while sending mass mail (send_ed_mass_email) through celery queue: {e}"
         )
 
 
@@ -61,4 +61,4 @@ def send_ed_email(sub: str, msg: str, from_email: str, to_list: list):
         log.info(msg)
         return msg
     except Exception as e:
-        log.error("Error while sending email (send_ed_email) through celery queue")
+        log.error(f"Error while sending email (send_ed_email) through celery queue: {e}")

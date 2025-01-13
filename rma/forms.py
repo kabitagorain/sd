@@ -12,12 +12,12 @@ class RmaForm(forms.ModelForm):
     customers, including fields for customer information and return reasons.
     """
 
-    captcha = ReCaptchaField(
-        widget=widgets.ReCaptchaV2Checkbox(
-            api_params={"hl": "cl", "onload": "onLoadFunc"}
-        ),
-        label="",
-    )
+    # captcha = ReCaptchaField(
+    #     widget=widgets.ReCaptchaV2Checkbox(
+    #         api_params={"hl": "cl", "onload": "onLoadFunc"}
+    #     ),
+    #     label="",
+    # )
 
     class Meta:
         model = RmaRequests
