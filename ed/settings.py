@@ -24,6 +24,7 @@ DEBUG = True
 if DEBUG:
     # Configure allowed hosts for the application
     ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
+    CSRF_TRUSTED_ORIGINS = ['http://return.edsystemsinc.com','https://return.edsystemsinc.com']
 else:
     # Configure allowed hosts for the application
     ALLOWED_HOSTS = env("ALLOWED_HOSTS_PRO").split(",")
