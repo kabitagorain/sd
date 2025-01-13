@@ -18,7 +18,8 @@ if not SECRET_KEY:
 
 # Enable debug mode based on environment variable. if it does not response in production please write hardcode True/False here
 # DEBUG = env("DEBUG")
-DEBUG = env.bool("DEBUG", default=False)
+#DEBUG = env.bool("DEBUG", default=False)
+DEBUG = True
 
 if DEBUG:
     # Configure allowed hosts for the application
@@ -105,14 +106,27 @@ WSGI_APPLICATION = "ed.wsgi.application"
 if DEBUG:
 
     # MySQL database dev
+    # DATABASES = {
+    #     "default": {
+    #         "ENGINE": "django.db.backends.mysql",
+    #         "NAME": env("ED_DB_NAME"),
+    #         "USER": env("ED_DB_USER"),
+    #         "PASSWORD": env("ED_DB_PASSWORD"),
+    #         "HOST": env("ED_DB_HOST"),
+    #         "PORT": env("ED_DB_PORT"),
+    #         "OPTIONS": {
+    #             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+    #         },
+    #     }
+    # }
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.mysql",
-            "NAME": env("ED_DB_NAME"),
-            "USER": env("ED_DB_USER"),
-            "PASSWORD": env("ED_DB_PASSWORD"),
-            "HOST": env("ED_DB_HOST"),
-            "PORT": env("ED_DB_PORT"),
+            "NAME": env("ED_DB_NAME_PRO"),
+            "USER": env("ED_DB_USER_PRO"),
+            "PASSWORD": env("ED_DB_PASSWORD_PRO"),
+            "HOST": env("ED_DB_HOST_PRO"),
+            "PORT": env("ED_DB_PORT_PRO"),
             "OPTIONS": {
                 "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
             },
@@ -232,16 +246,16 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 X_FRAME_OPTIONS = "SAMEORIGIN"
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
-# # SESSION_COOKIE_SAMESITE = "lax"
-# FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o777
-# FILE_UPLOAD_PERMISSIONS = 0o644
-# if not DEBUG:
-#     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-#     SECURE_SSL_HOST = True
-#     SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_SAMESITE = "lax"
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o777
+FILE_UPLOAD_PERMISSIONS = 0o644
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_HOST = True
+    SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = "ed_system"
 
 
