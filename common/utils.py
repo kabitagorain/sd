@@ -98,7 +98,7 @@ class SdMailService:
         Returns:
             dict: The context dictionary containing RMA details and site information.
         """
-        rma = self.get_rma_from_cache(rma_id)
+        rma = self.get_rma_from_cache(rma_id) 
 
         context = {
             "rma_number": rma.rma_number,
@@ -109,6 +109,7 @@ class SdMailService:
             "reason_for_return": rma.reason_for_return,
             "submitted_date": rma.created_at,
             "site_name": self.site.get("name"),
+            "return_address" : self.site.get('return_address')
         }
         return context
 
