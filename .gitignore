@@ -6,7 +6,7 @@ env
 .vscode
 .DS_Store  
 db.sqlite3
-celery.log
+
 
 cache/*
 !cache/.gitkeep
@@ -19,8 +19,9 @@ theme
 staticfiles
 
 security.txt
-media/site_meta/edsystemslogo.jpg
-static/admin/
+# celery.log
+# media/site_meta/edsystemslogo.jpg
+# static/admin/
 
 
 
