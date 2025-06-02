@@ -19,9 +19,9 @@ theme
 staticfiles
 
 security.txt
-# celery.log
-# media/site_meta/edsystemslogo.jpg
-# static/admin/
+celery.log
+media/site_meta/edsystemslogo.jpg
+static/admin/
 
 
 
