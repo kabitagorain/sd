@@ -1,8 +1,16 @@
+import subprocess
 from celery import shared_task
 from django.core.mail import send_mail, send_mass_mail
 import logging
 
 log = logging.getLogger("log")
+
+
+@shared_task
+def process_rma_email(message_id):
+    # Use the absolute path to your OpenClaw environment/script
+    script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
+    subprocess.run(["python3", script_path, "--message_id", message_id])
 
 
 @shared_task
@@ -61,4 +69,6 @@ def send_ed_email(sub: str, msg: str, from_email: str, to_list: list):
         log.info(msg)
         return msg
     except Exception as e:
-        log.error(f"Error while sending email (send_ed_email) through celery queue: {e}")
+        log.error(
+            f"Error while sending email (send_ed_email) through celery queue: {e}"
+        )

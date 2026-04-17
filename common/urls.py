@@ -1,12 +1,13 @@
 from django.urls import path
 
 from rma.views import rma_request_view
-from .views import *
+from common.views import ms_graph_webhook
 
 app_name = "common"
 
 urlpatterns = [
     path("", rma_request_view, name="rma_request"),
+    path("webhooks/msgraph/", ms_graph_webhook, name="ms_graph_webhook"),
 ]
 
 """

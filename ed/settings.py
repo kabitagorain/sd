@@ -29,7 +29,7 @@ else:
     # Configure allowed hosts for the application
     ALLOWED_HOSTS = env("ALLOWED_HOSTS_PRO").split(",")
     CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
-    
+
 
 # Set the default site ID for the Django sites framework
 SITE_ID = 1
@@ -45,21 +45,19 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-    'django.contrib.humanize',
+    "django.contrib.humanize",
     "django.contrib.sitemaps",
-    'django_celery_results',
-    'django_celery_beat',
-    
+    "django_celery_results",
+    "django_celery_beat",
     # Custom apps
     "account",
     "common",
     "rma",
-    
-    "django_recaptcha",# Third-party app for Google reCAPTCHA integration
+    "django_recaptcha",  # Third-party app for Google reCAPTCHA integration
 ]
 
 # Use a custom user model (currently inherits the built-in Django User model)
-AUTH_USER_MODEL = "account.User" 
+AUTH_USER_MODEL = "account.User"
 
 # Configure authentication backends
 AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend"]
@@ -93,9 +91,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                
                 # Custom context processor for site information from cache.
-                "common.context_processor.sd_context", 
+                "common.context_processor.sd_context",
             ],
         },
     },
@@ -120,7 +117,7 @@ if DEBUG:
             },
         }
     }
-    
+
 else:
     DATABASES = {
         "default": {
@@ -135,7 +132,6 @@ else:
             },
         }
     }
-    
 
 
 # Password validation settings
@@ -158,10 +154,10 @@ AUTH_PASSWORD_VALIDATORS = [
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": env("CACHES_LOCATION"),   
+        "LOCATION": env("CACHES_LOCATION"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
+        },
     }
 }
 
@@ -169,15 +165,17 @@ CACHES = {
 CELERY_TIMEZONE = "UTC"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_RESULT_BACKEND = 'django-db'
-CELERY_CACHE_BACKEND = 'default'
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_CACHE_BACKEND = "default"
 CELERY_RESULT_EXTENDED = True
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-
+M65_GRP_TENANT_ID = env("M65_GRP_TENANT_ID")
+M65_GRP_APP_ID = env("M65_GRP_APP_ID")
+M65_GRP_CLIENT_SECRET = env("M65_GRP_CLIENT_SECRET")
 
 # Localization settings
 LANGUAGE_CODE = "en-us"
@@ -205,7 +203,7 @@ RECAPTCHA_PUBLIC_KEY = env("RECAPTCHA_PUBLIC_KEY")
 RECAPTCHA_PRIVATE_KEY = env("RECAPTCHA_PRIVATE_KEY")
 if DEBUG:
     RECAPTCHA_DOMAIN = "www.recaptcha.net"
-    
+
     # Configure proxy settings for reCAPTCHA during development
     RECAPTCHA_PROXY = {
         "http": "http://127.0.0.1:8000",
@@ -251,13 +249,11 @@ SESSION_COOKIE_NAME = "ed_system"
 # RMA status options
 RMA_STATUS = [
     # Controls mail sending from the admin interface based on RMA status
-    ("rma_sent", "RMA Sent"), 
-    
+    ("rma_sent", "RMA Sent"),
     # Default status when an RMA is created from the client side
-    ("pending", "Pending"), 
-    
+    ("pending", "Pending"),
     # Status without special functionality
-    ("product_received", "Product Received"), 
+    ("product_received", "Product Received"),
 ]
 
 
@@ -351,5 +347,3 @@ LOGGING = {
     "handlers": HANDLERS,
     "loggers": LOGGERS[0],
 }
-
-

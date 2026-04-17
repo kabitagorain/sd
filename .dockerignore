@@ -24,5 +24,17 @@ media/site_meta/edsystemslogo.jpg
 static/admin/
 docker-compose.yml
 
+account/
+accounts/
+cache/
+common/
+ed/
+env/
+logs/
+media/
+rma/
+static/
+templates/
+
 
 
