@@ -364,11 +364,120 @@ Below are some potential enhancements that could be considered, depending on you
 - Custom CMS
 
 
+## Microsoft Graph Webhook Integration
+
+This project integrates with Microsoft Graph API to receive real-time notifications about incoming emails in a specific mailbox. The following components work together to enable this functionality:
+
+### Components
+
+#### 1. `ms_graph_webhook` View (common/views.py)
+
+A Django view that serves as the webhook endpoint for Microsoft Graph notifications.
+
+**Purpose**: 
+- Validates Microsoft's webhook handshake requests (GET requests with validation tokens)
+- Receives and processes incoming email notifications from Microsoft Graph (POST requests)
+- Extracts message IDs from notifications and delegates processing to the `process_rma_email` Celery task
+
+**Behavior**:
+- **GET Requests**: Returns the validation token that Microsoft sends during webhook registration
+- **POST Requests**: Accepts notification payloads, extracts message IDs from the `resourceData`, and queues them for processing via Celery
+- **Response**: Returns HTTP 202 (Accepted) to acknowledge receipt of notifications immediately
+
+**Key Features**:
+- CSRF exempt to allow external webhook calls
+- Processes notifications asynchronously via Celery for better performance
+- Handles multiple notifications in a single request
+
+**URL**: `/webhooks/msgraph/` (as configured in the project)
+
+#### 2. `process_rma_email` Celery Task (common/tasks.py)
+
+A Celery task that processes incoming email messages from the Microsoft mailbox.
+
+**Purpose**:
+- Handles the actual processing of RMA-related emails received via the Microsoft Graph webhook
+- Executes the OpenClaw email agent script to process the email message
+
+**Parameters**:
+- `message_id` (str): The unique identifier of the email message in Microsoft Graph
+
+**Behavior**:
+- Runs the external Python script located at `/home/adminuser/.openclaw/workspace/build_email_agent6.py`
+- Passes the message ID as a command-line argument to the script
+- Executes asynchronously via the Celery worker
+
+**Note**: The script path is hardcoded and should be updated to match your deployment environment.
+
+#### 3. `setup_m365_webhook` Management Command (common/management/commands/setup_m365_webhook.py)
+
+A Django management command that registers the webhook subscription with Microsoft Graph API.
+
+**Purpose**:
+- Authenticates with Microsoft Azure using configured credentials
+- Registers a webhook subscription to monitor a specific mailbox for new emails
+- Sets up the system to receive real-time notifications from Microsoft
+
+**Usage**:
+```bash
+python manage.py setup_m365_webhook
+```
+
+**Configuration Required**:
+The following environment variables or Django settings must be configured:
+- `M65_GRP_TENANT_ID`: Azure AD Tenant ID
+- `M65_GRP_APP_ID`: Microsoft Graph Application (Client) ID
+- `M65_GRP_CLIENT_SECRET`: Application Client Secret
+
+**Behavior**:
+1. Obtains an access token from Microsoft's token endpoint using OAuth 2.0 client credentials flow
+2. Creates a subscription for monitoring the inbox folder of a specific user email (currently hardcoded as `ehaines@edsystemsinc.com`)
+3. Sets the webhook notification URL to `https://return.edsystemsinc.com/webhooks/msgraph/`
+4. Configures the subscription to listen for `created` change type (new emails)
+5. Sets subscription expiration to approximately 2.9 days (max allowed by Microsoft)
+
+**Output**:
+- Success: Displays the subscription ID
+- Failure: Displays error details from Microsoft Graph API
+
+**Important Notes**:
+- The webhook URL must be publicly accessible and HTTPS
+- The user email address is currently hardcoded and should be parameterized for production
+- Subscriptions expire after ~2.9 days and require renewal (consider setting up a periodic task)
+- Microsoft requires the webhook to respond to validation requests within a specific timeframe
+
+### Integration Workflow
+
+1. **Setup Phase**: Run `setup_m365_webhook` to register the subscription with Microsoft Graph
+2. **Notification Phase**: When a new email arrives in the monitored inbox, Microsoft Graph sends a POST request to the `ms_graph_webhook` endpoint
+3. **Validation Phase**: The `ms_graph_webhook` view validates the notification and extracts the message ID
+4. **Processing Phase**: The message ID is queued as a `process_rma_email` Celery task for asynchronous processing
+5. **Execution Phase**: The Celery worker executes the external email agent script with the message ID
+
+### Environment Configuration
+
+Add the following to your `.env` file:
+```bash
+M65_GRP_TENANT_ID=your-tenant-id
+M65_GRP_APP_ID=your-app-id
+M65_GRP_CLIENT_SECRET=your-client-secret
+```
+
+### Dependencies
+
+- Microsoft Graph API credentials (Tenant ID, Application ID, Client Secret)
+- Celery worker running to process `process_rma_email` tasks
+- External email processing script at `/home/adminuser/.openclaw/workspace/build_email_agent6.py`
+- Requests library for HTTP communication with Microsoft
+
+
 ## Needed for deploying
 
 - Google recaptcha key
 - Admin email list, default website list, email configuration to setup
-- Hosting
+- Microsoft Graph API credentials (Tenant ID, Application ID, Client Secret) for webhook integration
+- Hosting with public HTTPS URL for webhook endpoint
+- Celery worker service running
     
     
 
