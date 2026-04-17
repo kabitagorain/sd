@@ -14,7 +14,7 @@ def ms_graph_webhook(request):
         if validation_token:
             # MUST return the actual variable, not a string literal!
             return HttpResponse(validation_token, content_type="text/plain", status=200)
-        return HttpResponse(status=400)
+        return HttpResponse(validation_token, status=400)
 
     # STEP B: Process Notification (POST)
     if request.method == "POST":
