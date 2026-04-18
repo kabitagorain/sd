@@ -50,7 +50,7 @@ class Command(BaseCommand):
         sub_body = {
             "changeType": "created",
             "notificationUrl": NOTIFICATION_URL,
-            "resource": "users/ehaines@edsystemsinc.com/messages",
+            "resource": "users/ehaines@edsystemsinc.com/mailFolders('Inbox')/messages",
             "expirationDateTime": expiry,
             "clientState": "SecretToken123",
         }

@@ -7,21 +7,6 @@ from django.core.cache import cache
 log = logging.getLogger("log")
 
 
-# @shared_task
-# def process_rma_email(message_id):
-#     script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
-
-#     # Add cwd to force the script to run inside my workspace
-#     subprocess.run(
-#         ["python3", script_path, "--message_id", message_id],
-#         cwd="/home/adminuser/.openclaw/workspace",
-#     )
-
-# from celery import shared_task
-# from django.core.cache import cache
-# import subprocess
-
-
 @shared_task
 def process_rma_email(message_id):
     # Lock the message_id in cache for 1 hour to prevent duplicates
