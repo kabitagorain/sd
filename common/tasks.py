@@ -33,7 +33,7 @@ def get_immutable_id(volatile_message_id):
 
 
 @shared_task
-def process_rma_email(message_id, internetMsgid):
+def process_rma_email(message_id):
     # Lock the message_id in cache for 1 hour to prevent duplicates
     internetMsgid = get_immutable_id(message_id)
     if not internetMsgid:
