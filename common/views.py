@@ -2,6 +2,9 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from common.tasks import process_rma_email
+import logging
+
+log = logging.getLogger("log")
 
 
 @csrf_exempt
@@ -26,8 +29,9 @@ def ms_graph_webhook(request):
                 if message_id:
                     # Hand it off to Celery immediately
                     process_rma_email.delay(message_id)
-        except json.JSONDecodeError:
-            pass
+        except Exception as e:
+            log.error(f"Error processing Microsoft Graph webhook: {e} ")
+            return HttpResponse(validation_token, status=200)  # Bad Request
 
         return HttpResponse(status=202)  # Tell MS we got it instantly
     return HttpResponse(validation_token, status=200)
