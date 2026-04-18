@@ -36,8 +36,11 @@ def get_immutable_id(volatile_message_id):
 def process_rma_email(message_id):
     # Lock the message_id in cache for 1 hour to prevent duplicates
     internetMsgid = get_immutable_id(message_id)
+    log.info(
+        f"Processing RMA email with message_id: {message_id} and internetMessageId: {internetMsgid}"
+    )
     if not internetMsgid:
-        print(f"Could not fetch internetMessageId for {message_id}")
+        log.warning(f"Could not fetch internetMessageId for {message_id}")
         return
 
     lock_key = f"rma_processed_{internetMsgid}"
