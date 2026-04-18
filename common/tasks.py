@@ -10,44 +10,36 @@ import requests
 log = logging.getLogger("log")
 
 
-def get_immutable_id(volatile_message_id):
-    # 1. Get an access token
-    token_url = f"https://login.microsoftonline.com/{settings.M65_GRP_TENANT_ID}/oauth2/v2.0/token"
-    token_data = {
-        "grant_type": "client_credentials",
-        "client_id": settings.M65_GRP_APP_ID,
-        "client_secret": settings.M65_GRP_CLIENT_SECRET,
-        "scope": "https://graph.microsoft.com/.default",
-    }
-    access_token = requests.post(token_url, data=token_data).json().get("access_token")
+# def get_immutable_id(volatile_message_id):
+#     # 1. Get an access token
+#     token_url = f"https://login.microsoftonline.com/{settings.M65_GRP_TENANT_ID}/oauth2/v2.0/token"
+#     token_data = {
+#         "grant_type": "client_credentials",
+#         "client_id": settings.M65_GRP_APP_ID,
+#         "client_secret": settings.M65_GRP_CLIENT_SECRET,
+#         "scope": "https://graph.microsoft.com/.default",
+#     }
+#     access_token = requests.post(token_url, data=token_data).json().get("access_token")
 
-    # 2. Make the API call to Graph to get the internetMessageId
-    graph_url = f"https://graph.microsoft.com/v1.0/users/ehaines@edsystemsinc.com/messages/{volatile_message_id}?$select=internetMessageId"
-    headers = {"Authorization": f"Bearer {access_token}"}
+#     # 2. Make the API call to Graph to get the internetMessageId
+#     graph_url = f"https://graph.microsoft.com/v1.0/users/ehaines@edsystemsinc.com/messages/{volatile_message_id}?$select=internetMessageId"
+#     headers = {"Authorization": f"Bearer {access_token}"}
 
-    response = requests.get(graph_url, headers=headers)
+#     response = requests.get(graph_url, headers=headers)
 
-    if response.status_code == 200:
-        return response.json().get("internetMessageId")
-    return None
+#     if response.status_code == 200:
+#         return response.json().get("internetMessageId")
+#     return None
 
 
 @shared_task
 def process_rma_email(message_id):
-    # Lock the message_id in cache for 1 hour to prevent duplicates
-    internetMsgid = get_immutable_id(message_id)
-    log.info(
-        f"Processing RMA email with message_id: {message_id} and internetMessageId: {internetMsgid}"
-    )
-    if not internetMsgid:
-        log.warning(f"Could not fetch internetMessageId for {message_id}")
-        return
 
-    lock_key = f"rma_processed_{internetMsgid}"
+    lock_key = f"rma_processed_{message_id}"
 
     # If this message_id is already in the cache, skip it
     if cache.get(lock_key):
-        print(f"Skipping duplicate webhook for message {internetMsgid}")
+        print(f"Skipping duplicate webhook for message {message_id}")
         return
 
     # Mark it as processed
