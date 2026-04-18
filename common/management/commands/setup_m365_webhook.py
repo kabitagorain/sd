@@ -1,3 +1,5 @@
+# ed /common/management/commands/setup_m365_webhook.py
+
 import requests
 import datetime
 from django.core.management.base import BaseCommand
@@ -47,7 +49,7 @@ class Command(BaseCommand):
 
         sub_body = {
             "changeType": "created",
-            "notificationUrl": "https://return.edsystemsinc.com/webhooks/msgraph/",
+            "notificationUrl": NOTIFICATION_URL,
             "resource": "users/ehaines@edsystemsinc.com/messages",
             "expirationDateTime": expiry,
             "clientState": "SecretToken123",

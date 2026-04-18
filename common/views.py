@@ -1,22 +1,19 @@
-# views.py
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-
-from common.tasks import process_rma_email  # We'll create this next
+from common.tasks import process_rma_email
 
 
 @csrf_exempt
 def ms_graph_webhook(request):
-    # STEP A: Microsoft Validation Handshake (GET)
-    if request.method == "GET":
-        validation_token = request.GET.get("validationToken")
-        if validation_token:
-            # MUST return the actual variable, not a string literal!
-            return HttpResponse(validation_token, content_type="text/plain", status=200)
-        return HttpResponse(validation_token, status=400)
+    # STEP A: Microsoft Validation Handshake
+    # Microsoft sends a POST request, but the token is in the query string (request.GET)
+    validation_token = request.GET.get("validationToken")
+    if validation_token:
+        # Must return the token as plain text with a 200 status
+        return HttpResponse(validation_token, content_type="text/plain", status=200)
 
-    # STEP B: Process Notification (POST)
+    # STEP B: Process Actual Email Notification
     if request.method == "POST":
         try:
             data = json.loads(request.body)
