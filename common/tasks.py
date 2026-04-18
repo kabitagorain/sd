@@ -8,9 +8,13 @@ log = logging.getLogger("log")
 
 @shared_task
 def process_rma_email(message_id):
-    # Use the absolute path to your OpenClaw environment/script
     script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
-    subprocess.run(["python3", script_path, "--message_id", message_id])
+
+    # Add cwd to force the script to run inside my workspace
+    subprocess.run(
+        ["python3", script_path, "--message_id", message_id],
+        cwd="/home/adminuser/.openclaw/workspace",
+    )
 
 
 @shared_task
