@@ -2,6 +2,7 @@ import requests
 import datetime
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.utils import timezone
 
 
 class Command(BaseCommand):
@@ -32,10 +33,14 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"Auth Failed: {token_res}"))
             return
 
+        # 1. Generate the exact UTC timestamp format Microsoft requires
+        # (We use 4000 minutes to be safely under the 4230 max limit)
+        now_utc = timezone.now()
+        expiry_date = now_utc + datetime.timedelta(minutes=4000)
+        # Format exactly as: "2026-04-20T18:00:00.000000Z"
+
         # 3. REGISTER WEBHOOK (Max expiration for messages is 4230 minutes / ~2.9 days)
-        expiry = (
-            datetime.datetime.utcnow() + datetime.timedelta(minutes=4200)
-        ).isoformat() + "Z"
+        expiry = expiry_date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
         sub_url = "https://graph.microsoft.com/v1.0/subscriptions"
         headers = {
@@ -47,8 +52,7 @@ class Command(BaseCommand):
         sub_body = {
             "changeType": "created",
             "notificationUrl": NOTIFICATION_URL,
-            # "resource": f"users/{USER_EMAIL}/mailFolders('inbox')/messages",
-            "resource": f"users/{USER_EMAIL}/messages",
+            "resource": "users/ehaines@edsystemsinc.com/messages",
             "expirationDateTime": expiry,
             "clientState": "SecretToken123",
         }
