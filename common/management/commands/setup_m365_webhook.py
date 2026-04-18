@@ -47,7 +47,8 @@ class Command(BaseCommand):
         sub_body = {
             "changeType": "created",
             "notificationUrl": NOTIFICATION_URL,
-            "resource": f"users/{USER_EMAIL}/mailFolders('inbox')/messages",
+            # "resource": f"users/{USER_EMAIL}/mailFolders('inbox')/messages",
+            "resource": f"users/{USER_EMAIL}/messages",
             "expirationDateTime": expiry,
             "clientState": "SecretToken123",
         }
