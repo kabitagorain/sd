@@ -33,25 +33,21 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"Auth Failed: {token_res}"))
             return
 
-        # 1. Generate the exact UTC timestamp format Microsoft requires
-        # (We use 4000 minutes to be safely under the 4230 max limit)
-        now_utc = timezone.now()
-        expiry_date = now_utc + datetime.timedelta(minutes=4000)
-        # Format exactly as: "2026-04-20T18:00:00.000000Z"
+        # 1. Clean Expiry (Exactly what MS expects)
+        # Use 4230 minutes max. Let's use 4000 to be safe.
+        expiry_date = timezone.now() + datetime.timedelta(minutes=4000)
+        expiry = expiry_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        # 3. REGISTER WEBHOOK (Max expiration for messages is 4230 minutes / ~2.9 days)
-        expiry = expiry_date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
-
+        # 3. REGISTER WEBHOOK
         sub_url = "https://graph.microsoft.com/v1.0/subscriptions"
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
         }
 
-        # We listen specifically to the Inbox folder for new emails
         sub_body = {
             "changeType": "created",
-            "notificationUrl": NOTIFICATION_URL,
+            "notificationUrl": "https://return.edsystemsinc.com/webhooks/msgraph/",
             "resource": "users/ehaines@edsystemsinc.com/messages",
             "expirationDateTime": expiry,
             "clientState": "SecretToken123",
@@ -61,9 +57,8 @@ class Command(BaseCommand):
 
         if response.status_code == 201:
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"Successfully subscribed! ID: {response.json().get('id')}"
-                )
+                self.style.SUCCESS(f"Success! ID: {response.json().get('id')}")
             )
         else:
+            # This will print the specific field causing the error
             self.stdout.write(self.style.ERROR(f"Failed: {response.text}"))
