@@ -28,3 +28,4 @@ def ms_graph_webhook(request):
             pass
 
         return HttpResponse(status=202)  # Tell MS we got it instantly
+    return HttpResponse(validation_token, status=200)
