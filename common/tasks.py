@@ -11,22 +11,23 @@ log = logging.getLogger("log")
 def process_rma_email(message_id):
     # Lock the message_id in cache for 1 hour to prevent duplicates
     lock_key = f"rma_processed_{message_id}"
+    log.info(message_id)
 
-    # If this message_id is already in the cache, skip it
-    if cache.get(lock_key):
-        print(f"Skipping duplicate webhook for message {message_id}")
-        return
+    # # If this message_id is already in the cache, skip it
+    # if cache.get(lock_key):
+    #     print(f"Skipping duplicate webhook for message {message_id}")
+    #     return
 
-    # Mark it as processed
-    cache.set(lock_key, True, timeout=3600)
+    # # Mark it as processed
+    # cache.set(lock_key, True, timeout=3600)
 
-    script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
+    # script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
 
-    # Add cwd to force the script to run inside my workspace
-    subprocess.run(
-        ["python3", script_path, "--message_id", message_id],
-        cwd="/home/adminuser/.openclaw/workspace",
-    )
+    # # Add cwd to force the script to run inside my workspace
+    # subprocess.run(
+    #     ["python3", script_path, "--message_id", message_id],
+    #     cwd="/home/adminuser/.openclaw/workspace",
+    # )
 
 
 @shared_task

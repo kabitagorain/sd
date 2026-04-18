@@ -17,6 +17,8 @@ def ms_graph_webhook(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            process_rma_email.delay(data)
+            return HttpResponse(validation_token, status=200)
             # Notifications come in a 'value' array
             for notification in data.get("value", []):
                 resource_data = notification.get("resourceData", {})
