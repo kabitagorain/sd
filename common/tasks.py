@@ -4,30 +4,88 @@ from django.core.mail import send_mail, send_mass_mail
 import logging
 from django.core.cache import cache
 
+from django.conf import settings
+import requests
 
 log = logging.getLogger("log")
 
 
-@shared_task
-def process_rma_email(message_id):
+# def get_immutable_id(volatile_message_id):
+#     # 1. Get an access token
+#     token_url = f"https://login.microsoftonline.com/{settings.M65_GRP_TENANT_ID}/oauth2/v2.0/token"
+#     token_data = {
+#         "grant_type": "client_credentials",
+#         "client_id": settings.M65_GRP_APP_ID,
+#         "client_secret": settings.M65_GRP_CLIENT_SECRET,
+#         "scope": "https://graph.microsoft.com/.default",
+#     }
+#     access_token = requests.post(token_url, data=token_data).json().get("access_token")
 
-    lock_key = f"rma_processed_{message_id}"
+#     # 2. Make the API call to Graph to get the internetMessageId
+#     graph_url = f"https://graph.microsoft.com/v1.0/users/ehaines@edsystemsinc.com/messages/{volatile_message_id}?$select=internetMessageId"
+#     headers = {"Authorization": f"Bearer {access_token}"}
 
-    # If this message_id is already in the cache, skip it
-    if cache.get(lock_key):
-        print(f"Skipping duplicate webhook for message {message_id}")
+#     response = requests.get(graph_url, headers=headers)
+
+#     if response.status_code == 200:
+#         return response.json().get("internetMessageId")
+#     return None
+
+
+def get_immutable_id(volatile_id):
+    """Fetch the permanent internetMessageId from Graph."""
+    token_url = f"https://login.microsoftonline.com/{settings.M65_GRP_TENANT_ID}/oauth2/v2.0/token"
+    token_data = {
+        "grant_type": "client_credentials",
+        "client_id": settings.M65_GRP_APP_ID,
+        "client_secret": settings.M65_GRP_CLIENT_SECRET,
+        "scope": "https://graph.microsoft.com/.default",
+    }
+    try:
+        token_res = requests.post(token_url, data=token_data, timeout=10).json()
+        access_token = token_res.get("access_token")
+
+        graph_url = f"https://graph.microsoft.com/v1.0/users/ehaines@edsystemsinc.com/messages/{volatile_id}?$select=internetMessageId"
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        response = requests.get(graph_url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json().get("internetMessageId")
+    except Exception as e:
+        print(f"Error fetching immutable ID: {e}")
+    return None
+
+
+@shared_task(bind=True, max_retries=3)
+def process_rma_email(self, volatile_id):
+    # 1. Get the permanent ID (InternetMessageId)
+    immutable_id = get_immutable_id(volatile_id)
+
+    if not immutable_id:
+        print(
+            f"Could not resolve ID for {volatile_id}. It might be deleted or delayed."
+        )
         return
 
-    # Mark it as processed
-    cache.set(lock_key, True, timeout=3600)
+    # 2. FINAL ATOMIC LOCK: Use the permanent ID to prevent duplicate drafts
+    # We set a long timeout (24 hours) because we never want to process the same email twice.
+    processing_key = f"rma_final_lock_{immutable_id}"
+    if not cache.add(processing_key, True, timeout=86400):
+        print(f"Email {immutable_id} already processed. Skipping.")
+        return
 
+    # 3. Execute OpenClaw script
     script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
-
-    # Add cwd to force the script to run inside my workspace
-    subprocess.run(
-        ["python3", script_path, "--message_id", message_id],
-        cwd="/home/adminuser/.openclaw/workspace",
-    )
+    try:
+        subprocess.run(
+            ["python3", script_path, "--message_id", immutable_id],
+            cwd="/home/adminuser/.openclaw/workspace",
+            check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        # If the script fails, remove the lock so we can retry later
+        cache.delete(processing_key)
+        print(f"Script failed: {e}")
 
 
 @shared_task
