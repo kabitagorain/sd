@@ -58,57 +58,90 @@ def get_immutable_id(volatile_id):
 
 @shared_task(bind=True)
 def process_rma_email(self, volatile_id):
-    # LAYER 1: Immediate volatile lock (Stops the 'ping' flood)
-    # This prevents the same notification from spawning multiple tasks
-    ping_lock = f"rma_ping_{volatile_id}"
-    if not cache.add(ping_lock, True, timeout=60):
-        return
-
-    # LAYER 2: Get the Permanent ID
+    # 1. Resolve to Permanent ID
     immutable_id = get_immutable_id(volatile_id)
     if not immutable_id:
-        # If we can't get the ID, delete ping lock so we can try next time
-        cache.delete(ping_lock)
         return
 
-    # LAYER 3: The "Draft Created" Lock (Stops the 'duplicate' drafts)
-    # We use the InternetMessageId here.
-    final_lock = f"rma_final_done_{immutable_id}"
-
-    # We use cache.add() because it is atomic in Redis
-    if not cache.add(final_lock, "PROCESSING", timeout=300):
-        # Check if it was already COMPLETED or is just currently PROCESSING
+    # 2. Check if already done - DO NOT DELETE THIS LOCK
+    final_lock = f"rma_done_{immutable_id}"
+    if not cache.add(final_lock, "PROCESSING", timeout=600):
         status = cache.get(final_lock)
-        if status == "COMPLETED":
-            print(f"SKIP: Email {immutable_id} already has a draft.")
-        else:
-            print(
-                f"SKIP: Email {immutable_id} is currently being processed by another worker."
-            )
+        print(f"Skipping {immutable_id} - Status: {status}")
         return
 
     try:
-        # EXECUTE OPENCLAW SCRIPT
+        # 3. Execute script
         script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
-        result = subprocess.run(
+        subprocess.run(
             ["python3", script_path, "--message_id", immutable_id],
             cwd="/home/adminuser/.openclaw/workspace",
-            capture_output=True,
-            text=True,
+            check=True,
         )
 
-        if result.returncode == 0:
-            # Mark as COMPLETED permanently (24 hours)
-            cache.set(final_lock, "COMPLETED", timeout=86400)
-            print(f"SUCCESS: Draft created for {immutable_id}")
-        else:
-            # If the script failed, release the lock so it can be retried
-            cache.delete(final_lock)
-            print(f"SCRIPT ERROR: {result.stderr}")
+        # 4. Set PERMANENT LOCK on success
+        cache.set(final_lock, "COMPLETED", timeout=86400)
+        print(f"SUCCESS: Draft created for {immutable_id}")
 
     except Exception as e:
+        # ONLY delete if it failed, so it can try again on the next notification
         cache.delete(final_lock)
-        print(f"SYSTEM ERROR: {e}")
+        print(f"FAILED: {immutable_id} - Error: {e}")
+
+
+# @shared_task(bind=True)
+# def process_rma_email(self, volatile_id):
+#     # LAYER 1: Immediate volatile lock (Stops the 'ping' flood)
+#     # This prevents the same notification from spawning multiple tasks
+#     ping_lock = f"rma_ping_{volatile_id}"
+#     if not cache.add(ping_lock, True, timeout=60):
+#         return
+
+#     # LAYER 2: Get the Permanent ID
+#     immutable_id = get_immutable_id(volatile_id)
+#     if not immutable_id:
+#         # If we can't get the ID, delete ping lock so we can try next time
+#         cache.delete(ping_lock)
+#         return
+
+#     # LAYER 3: The "Draft Created" Lock (Stops the 'duplicate' drafts)
+#     # We use the InternetMessageId here.
+#     final_lock = f"rma_final_done_{immutable_id}"
+
+#     # We use cache.add() because it is atomic in Redis
+#     if not cache.add(final_lock, "PROCESSING", timeout=300):
+#         # Check if it was already COMPLETED or is just currently PROCESSING
+#         status = cache.get(final_lock)
+#         if status == "COMPLETED":
+#             print(f"SKIP: Email {immutable_id} already has a draft.")
+#         else:
+#             print(
+#                 f"SKIP: Email {immutable_id} is currently being processed by another worker."
+#             )
+#         return
+
+#     try:
+#         # EXECUTE OPENCLAW SCRIPT
+#         script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
+#         result = subprocess.run(
+#             ["python3", script_path, "--message_id", immutable_id],
+#             cwd="/home/adminuser/.openclaw/workspace",
+#             capture_output=True,
+#             text=True,
+#         )
+
+#         if result.returncode == 0:
+#             # Mark as COMPLETED permanently (24 hours)
+#             cache.set(final_lock, "COMPLETED", timeout=86400)
+#             print(f"SUCCESS: Draft created for {immutable_id}")
+#         else:
+#             # If the script failed, release the lock so it can be retried
+#             cache.delete(final_lock)
+#             print(f"SCRIPT ERROR: {result.stderr}")
+
+#     except Exception as e:
+#         cache.delete(final_lock)
+#         print(f"SYSTEM ERROR: {e}")
 
 
 @shared_task
