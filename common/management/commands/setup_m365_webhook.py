@@ -4,13 +4,8 @@ import requests
 import datetime
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.utils import 
-
-import requests
-import datetime
-from django.core.management.base import BaseCommand
-from django.conf import settings
 from django.utils import timezone
+
 
 class Command(BaseCommand):
     help = "Clean old subscriptions and register a fresh Microsoft Graph Webhook for the Inbox."
@@ -20,7 +15,7 @@ class Command(BaseCommand):
         TENANT_ID = settings.M65_GRP_TENANT_ID
         CLIENT_ID = settings.M65_GRP_APP_ID
         CLIENT_SECRET = settings.M65_GRP_CLIENT_SECRET
-        
+
         NOTIFICATION_URL = "https://return.edsystemsinc.com/webhooks/msgraph/"
         USER_EMAIL = "ehaines@edsystemsinc.com"
 
@@ -32,7 +27,7 @@ class Command(BaseCommand):
             "client_secret": CLIENT_SECRET,
             "scope": "https://graph.microsoft.com/.default",
         }
-        
+
         try:
             token_res = requests.post(token_url, data=token_data).json()
             access_token = token_res.get("access_token")
@@ -41,7 +36,9 @@ class Command(BaseCommand):
             return
 
         if not access_token:
-            self.stdout.write(self.style.ERROR(f"Could not get access token: {token_res}"))
+            self.stdout.write(
+                self.style.ERROR(f"Could not get access token: {token_res}")
+            )
             return
 
         headers = {
@@ -54,11 +51,13 @@ class Command(BaseCommand):
         # This prevents the "Double Draft" flood from old active webhooks
         self.stdout.write("Checking for existing subscriptions...")
         try:
-            current_subs = requests.get(sub_url, headers=headers).json().get('value', [])
+            current_subs = (
+                requests.get(sub_url, headers=headers).json().get("value", [])
+            )
             for sub in current_subs:
                 # We only delete subs that point to our specific endpoint
-                if NOTIFICATION_URL in sub.get('notificationUrl', ''):
-                    sub_id = sub.get('id')
+                if NOTIFICATION_URL in sub.get("notificationUrl", ""):
+                    sub_id = sub.get("id")
                     self.stdout.write(f"Removing old subscription: {sub_id}")
                     requests.delete(f"{sub_url}/{sub_id}", headers=headers)
         except Exception as e:
@@ -67,7 +66,7 @@ class Command(BaseCommand):
         # 4. PREPARE NEW SUBSCRIPTION
         # Expiration must be < 4230 minutes. We'll use 4000 (roughly 2.7 days).
         expiry_date = timezone.now() + datetime.timedelta(minutes=4000)
-        expiry = expiry_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        expiry = expiry_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         sub_body = {
             "changeType": "created",
@@ -75,7 +74,7 @@ class Command(BaseCommand):
             # FOCUS: Only watch the Inbox, not the whole user resource
             "resource": f"users/{USER_EMAIL}/mailFolders('Inbox')/messages",
             "expirationDateTime": expiry,
-            "clientState": "SecretToken123", # Used in your view to verify the POST
+            "clientState": "SecretToken123",  # Used in your view to verify the POST
         }
 
         # 5. REGISTER
@@ -90,12 +89,16 @@ class Command(BaseCommand):
             self.stdout.write(f"Expires at: {res_data.get('expirationDateTime')}")
         else:
             self.stdout.write(
-                self.style.ERROR(f"FAILED to register: {response.status_code} - {response.text}")
+                self.style.ERROR(
+                    f"FAILED to register: {response.status_code} - {response.text}"
+                )
             )
-            self.stdout.write(self.style.WARNING(
-                "Note: If you see 'ValidationError', Eric's IT admin might still need to "
-                "run the PowerShell 'New-ApplicationAccessPolicy' for this App ID."
-            ))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Note: If you see 'ValidationError', Eric's IT admin might still need to "
+                    "run the PowerShell 'New-ApplicationAccessPolicy' for this App ID."
+                )
+            )
 
 
 # class Command(BaseCommand):
