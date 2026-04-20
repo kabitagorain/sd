@@ -58,34 +58,48 @@ def get_immutable_id(volatile_id):
 
 @shared_task(bind=True, max_retries=3)
 def process_rma_email(self, volatile_id):
-    # 1. Get the permanent ID (InternetMessageId)
+    # --- LAYER 1: The Initial ID Conversion ---
     immutable_id = get_immutable_id(volatile_id)
-
     if not immutable_id:
+        return
+
+    # --- LAYER 2: THE EXECUTION LOCK ---
+    # We use cache.add to ensure only ONE worker can proceed past this line.
+    processing_key = f"rma_active_processing_{immutable_id}"
+
+    # If cache.add returns False, someone else is already processing this ID
+    if not cache.add(processing_key, "LOCKED", timeout=300):  # 5 minute lock
         print(
-            f"Could not resolve ID for {volatile_id}. It might be deleted or delayed."
+            f"ALREADY PROCESSING: Task for {immutable_id} is currently running in another worker. Skipping."
         )
         return
 
-    # 2. FINAL ATOMIC LOCK: Use the permanent ID to prevent duplicate drafts
-    # We set a long timeout (24 hours) because we never want to process the same email twice.
-    processing_key = f"rma_final_lock_{immutable_id}"
-    if not cache.add(processing_key, True, timeout=86400):
-        print(f"Email {immutable_id} already processed. Skipping.")
+    # --- LAYER 3: THE PERMANENT "DONE" LOCK ---
+    # Check if we have ALREADY finished this email in the past
+    done_key = f"rma_final_done_{immutable_id}"
+    if cache.get(done_key):
+        # We must delete the active lock before exiting
+        cache.delete(processing_key)
+        print(f"ALREADY FINISHED: Email {immutable_id} was already drafted. Skipping.")
         return
 
-    # 3. Execute OpenClaw script
-    script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
     try:
+        # EXECUTE OPENCLAW SCRIPT
+        script_path = "/home/adminuser/.openclaw/workspace/build_email_agent6.py"
         subprocess.run(
             ["python3", script_path, "--message_id", immutable_id],
             cwd="/home/adminuser/.openclaw/workspace",
             check=True,
         )
-    except subprocess.CalledProcessError as e:
-        # If the script fails, remove the lock so we can retry later
+
+        # Mark as PERMANENTLY done (24 hours)
+        cache.set(done_key, True, timeout=86400)
+
+    except Exception as e:
+        print(f"Error during script execution: {e}")
+    finally:
+        # ALWAYS release the active processing lock so future emails can be processed
         cache.delete(processing_key)
-        print(f"Script failed: {e}")
 
 
 @shared_task
